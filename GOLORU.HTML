@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Your Shipment - ShipEase</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Link to Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #008CBA;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .shipment-info, .status {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    .shipment-info h2, .status h3 {
+      font-size: 24px;
+      color: #008CBA;
+    }
+
+    .shipment-id input {
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 450px;
+      margin-right: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .shipment-id button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #5cb85c;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .shipment-id button:hover {
+      background-color: #4cae4c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    /* Status Section */
+    .status ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .status li {
+      background-color: #eef;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .status li:hover {
+      background-color: #d6e9f8;
+    }
+
+    .status i {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    /* Logo Section */
+    .logo-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-container img {
+      width: 300px;
+      height: auto;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      header {
+        font-size: 22px;
+      }
+
+      .shipment-id input, .shipment-id button {
+        width: 100%;
+      }
+
+      .container {
+        padding: 15px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <img src="logo.png" alt="ShipEase Logo"> <!-- Replace with actual logo path -->
+    </div>
+    Track Your Shipment
+  </header>
+
+  <div class="container">
+    <!-- Shipment Tracking Form -->
+    <section class="shipment-info">
+      <h2>Enter Shipment ID to Track</h2>
+      <div class="shipment-id">
+        <label for="shipment-id">Shipment ID:</label>
+        <input type="text" id="shipment-id" placeholder="Enter Shipment ID">
+        <button onclick="trackShipment()">Track</button>
+      </div>
+
+      <div id="shipment-info-display"></div>
+    </section>
+
+    <!-- Shipment Status Updates -->
+    <div class="status" id="status">
+      <h3>Status</h3>
+      <ul id="status-updates">
+        <li id="status1"><i class="fas fa-clock"></i> Shipment is waiting...</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Shipment database simulation
+    const shipmentDatabase = {
+      "GLC-HLM78901": {
+        sender: {
+          name: "SOLSTAR GROUPS",
+          address: "380 QUIVAS STREET, DENVER, CO, 80223, US",
+          email: "SOLSTARGROUPSLTD@GMAIL.COM"
+        },
+        receiver: {
+          name: "Helder Mendes da Fonseca",
+          address: "Terminal Fayol Logist, Luanda, Angola",
+          email: "heldermendesd94@gmail.com"
+        },
+        shipmentFacts: {
+          description: "2024 Suzuki Jimny 1.5-litre engine",
+          weight: "1,110KG",
+          shipmentDate: "2025-09-03",
+          estimatedDeliveryDate: "2025-10-01",
+          courier: "GC Logistics"
+        },
+        statusUpdates: [
+          { status: "On-Hold", location: "Port of BOSTON", message: "Shipment requires balance payment", icon: "fas fa-pause" },
+          { status: "In-Transit", location: "BOSTON, Massachusetts", message: "Package In Transit", icon: "fas fa-shipping-fast" },
+          { status: "Departed", location: "Dubuque JOWA", message: "Ship on route to port", icon: "fas fa-truck-moving" },
+          { status: "Picked-Up", location: "380 QUIVAS STREET, DENVER, CO", message: "Order Picked Up", icon: "fas fa-box-open" }
+        ]
+      }
+    };
+
+    // Track Shipment function
+    function trackShipment() {
+      const shipmentId = document.getElementById("shipment-id").value;
+      if (!shipmentId) {
+        alert("Please enter a shipment ID!");
+        return;
+      }
+
+      const shipmentData = shipmentDatabase[shipmentId];
+      if (!shipmentData) {
+        alert("Shipment ID not found!");
+        return;
+      }
+
+      displayShipmentInfo(shipmentData);
+      simulateShipmentMovement(shipmentData.statusUpdates);
+    }
+
+    // Display Shipment Info
+    function displayShipmentInfo(data) {
+      const display = document.getElementById("shipment-info-display");
+      display.innerHTML = `
+        <h3>Sender Information</h3>
+        <table>
+          <tr><th>Name</th><td>${data.sender.name}</td></tr>
+          <tr><th>Address</th><td>${data.sender.address}</td></tr>
+          <tr><th>Email</th><td>${data.sender.email}</td></tr>
+        </table>
+
+        <h3>Receiver Information</h3>
+        <table>
+          <tr><th>Name</th><td>${data.receiver.name}</td></tr>
+          <tr><th>Address</th><td>${data.receiver.address}</td></tr>
+          <tr><th>Email</th><td>${data.receiver.email}</td></tr>
+        </table>
+
+        <h3>Shipment Facts</h3>
+        <table>
+          <tr><th>Description</th><td>${data.shipmentFacts.description}</td></tr>
+          <tr><th>Weight</th><td>${data.shipmentFacts.weight}</td></tr>
+          <tr><th>Shipment Date</th><td>${data.shipmentFacts.shipmentDate}</td></tr>
+          <tr><th>Estimated Delivery Date</th><td>${data.shipmentFacts.estimatedDeliveryDate}</td></tr>
+          <tr><th>Courier</th><td>${data.shipmentFacts.courier}</td></tr>
+        </table>
+
+        <h3>Status Updates</h3>
+        <ul id="status-updates">
+          ${data.statusUpdates.map(status => `
+            <li><i class="${status.icon}"></i> <strong>${status.status} at ${status.location}:</strong> ${status.message}</li>
+          `).join('')}
+        </ul>
+      `;
+    }
+
+    // Simulate Shipment Movement and Show Timed Status Updates
+    function simulateShipmentMovement(statusUpdates) {
+      let currentPosition = 1;
+      const totalSteps = statusUpdates.length;
+      let delay = 10000;  // Delay in milliseconds between each status update
+
+      // Function to show status updates one by one
+      function showStatusUpdate() {
+        if (currentPosition < totalSteps) {
+          const statusUpdate = statusUpdates[currentPosition];
+          document.getElementById('status1').innerHTML = `<i class="${statusUpdate.icon}"></i> ${statusUpdate.status} at ${statusUpdate.location}: ${statusUpdate.message}`;
+          currentPosition++;
+          setTimeout(showStatusUpdate, delay);  // Call next status update after the delay
+        } else {
+          document.getElementById('status1').innerHTML = '<i class="fas fa-check-circle"></i> Shipment Delivered';
+        }
+      }
+
+      // Start showing status updates
+      showStatusUpdate();
+    }
+  </script>
+
+</body>
+</html>
