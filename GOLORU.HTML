@@ -191,11 +191,11 @@
         },
         receiver: {
           name: "samsonl Leonard",
-          ETA:  "15-21 days"
-          Freight Method: "Sea Freight / FOB/ D2D"
-          Delivery Type: Home Delivery
+          eta: "15-21 days",
+          freightmethod: "Sea Freight / FOB/ D2D",
+          deliverytype: "Home Delivery",
           address: "Terminal Fayol Logist, Luanda, Angola",
-          email: "heldermendesd94@gmail.com"
+          email: "Samsonleonardleonard17@gmail.com"
         },
         shipmentFacts: {
           description: "TYE3000 72V 12kW electric dirt bike.",
@@ -245,6 +245,9 @@
         <h3>Receiver Information</h3>
         <table>
           <tr><th>Name</th><td>${data.receiver.name}</td></tr>
+          <tr><th>ETA</th><td>${data.reciever.eta}</td></tr>
+          <tr><th>Freight Method</th><td>${data.receiver.freightmethod}</td></tr>
+          <tr><th>Delivery Type</th><td>${data.receiver.deliverytype}</td></tr>
           <tr><th>Address</th><td>${data.receiver.address}</td></tr>
           <tr><th>Email</th><td>${data.receiver.email}</td></tr>
         </table>
@@ -252,7 +255,7 @@
         <h3>Shipment Facts</h3>
         <table>
           <tr><th>Description</th><td>${data.shipmentFacts.description}</td></tr>
-          <tr><th>Weight</th><td>${data.shipmentFacts.weight}</td></tr>
+          <tr><th>unit</th><td>${data.shipmentFacts.unit}</td></tr>
           <tr><th>Shipment Date</th><td>${data.shipmentFacts.shipmentDate}</td></tr>
           <tr><th>Estimated Delivery Date</th><td>${data.shipmentFacts.estimatedDeliveryDate}</td></tr>
           <tr><th>Courier</th><td>${data.shipmentFacts.courier}</td></tr>
@@ -292,5 +295,6 @@
 
 </body>
 </html>
+
 
 
