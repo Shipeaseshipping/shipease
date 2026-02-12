@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Track Your Shipment - ShipEase</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link rel="icon" type="image/x-icon" href="logo.png">
+
+  <!-- Firebase SDKs (v8.x.x) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <style>
+    /* Your CSS styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #008CBA;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .shipment-info, .status {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 450px;
+      margin-bottom: 15px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #5cb85c;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4cae4c;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <img src="logo.png" alt="ShipEase Logo">
+    </div>
+    Admin - Track Your Shipment
+  </header>
+
+  <div class="container">
+    <section class="shipment-info">
+      <h2>Enter Shipment Details</h2>
+
+      <!-- Shipment ID -->
+      <label for="shipment-id">Shipment ID:</label>
+      <input type="text" id="shipment-id" placeholder="Enter Shipment ID (e.g. 29164040)">
+
+      <!-- Sender Information -->
+      <h3>Sender Information</h3>
+      <label for="sender-name">Sender Name:</label>
+      <input type="text" id="sender-name">
+      <label for="sender-address">Sender Address:</label>
+      <input type="text" id="sender-address">
+      <label for="sender-email">Sender Email:</label>
+      <input type="email" id="sender-email">
+
+      <!-- Receiver Information -->
+      <h3>Receiver Information</h3>
+      <label for="receiver-name">Receiver Name:</label>
+      <input type="text" id="receiver-name">
+      <label for="receiver-address">Receiver Address:</label>
+      <input type="text" id="receiver-address">
+      <label for="receiver-email">Receiver Email:</label>
+      <input type="email" id="receiver-email">
+
+      <!-- Invoice Details -->
+      <h3>Invoice Details</h3>
+      <label for="proforma-invoice">Proforma Invoice No:</label>
+      <input type="text" id="proforma-invoice">
+      <label for="invoice-date">Invoice Date:</label>
+      <input type="date" id="invoice-date">
+      <label for="due-date">Due Date:</label>
+      <input type="date" id="due-date">
+      <label for="currency">Currency:</label>
+      <input type="text" id="currency">
+      <label for="payment-method">Payment Method:</label>
+      <input type="text" id="payment-method">
+      <label for="payment-mode">Payment Mode:</label>
+      <input type="text" id="payment-mode">
+
+      <!-- Shipping Details -->
+      <h3>Shipping Details</h3>
+      <label for="attention">Ship To (Attention):</label>
+      <input type="text" id="attention">
+      <label for="eta">ETA:</label>
+      <input type="text" id="eta">
+      <label for="freight-method">Freight Method:</label>
+      <input type="text" id="freight-method">
+      <label for="delivery-type">Delivery Type:</label>
+      <input type="text" id="delivery-type">
+
+      <!-- Item Details -->
+      <h3>Item Details</h3>
+      <label for="description">Description:</label>
+      <input type="text" id="description">
+      <label for="units">Unit(s):</label>
+      <input type="number" id="units">
+      <label for="unit-price">Unit Price:</label>
+      <input type="number" id="unit-price">
+      <label for="shipping-cost">Shipping:</label>
+      <input type="number" id="shipping-cost">
+      <label for="total-payable">Total Payable:</label>
+      <input type="number" id="total-payable">
+      <label for="amount-in-words">Amount in Words:</label>
+      <input type="text" id="amount-in-words">
+
+      <!-- Status Updates -->
+      <h3>Status Updates</h3>
+      <label for="status">Status:</label>
+      <input type="text" id="status">
+      <label for="location">Location:</label>
+      <input type="text" id="location">
+      <label for="message">Message:</label>
+      <input type="text" id="message">
+
+      <button type="button" onclick="saveShipmentData()">Save Shipment</button>
+    </section>
+  </div>
+
+  <!-- Firebase initialization and saving shipment data -->
+  <script>
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD3fll3qcu1WS6hzRruVzDeEQAcp3M2HhA",
+  authDomain: "shipease-6c5e2.firebaseapp.com",
+  databaseURL: "https://shipease-6c5e2-default-rtdb.firebaseio.com",
+  projectId: "shipease-6c5e2",
+  storageBucket: "shipease-6c5e2.firebasestorage.app",
+  messagingSenderId: "118681662498",
+  appId: "1:118681662498:web:7f22bb458fe94e6687c67b",
+  measurementId: "G-G2Q87JLM2B"
+    };
+    
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Save shipment data to Firebase
+    function saveShipmentData() {
+      const shipmentId = document.getElementById("shipment-id").value.trim();
+      const senderName = document.getElementById("sender-name").value.trim();
+      const senderAddress = document.getElementById("sender-address").value.trim();
+      const senderEmail = document.getElementById("sender-email").value.trim();
+      const receiverName = document.getElementById("receiver-name").value.trim();
+      const receiverAddress = document.getElementById("receiver-address").value.trim();
+      const receiverEmail = document.getElementById("receiver-email").value.trim();
+
+      // Invoice Details (shipmentFacts)
+      const proformaInvoice = document.getElementById("proforma-invoice").value.trim();
+      const invoiceDate = document.getElementById("invoice-date").value.trim();
+      const dueDate = document.getElementById("due-date").value.trim();
+      const currency = document.getElementById("currency").value.trim();
+      const paymentMethod = document.getElementById("payment-method").value.trim();
+      const paymentMode = document.getElementById("payment-mode").value.trim();
+
+      // Shipping Details
+      const attention = document.getElementById("attention").value.trim();
+      const eta = document.getElementById("eta").value.trim();
+      const freightMethod = document.getElementById("freight-method").value.trim();
+      const deliveryType = document.getElementById("delivery-type").value.trim();
+
+      // Item Details
+      const description = document.getElementById("description").value.trim();
+      const units = document.getElementById("units").value.trim();
+      const unitPrice = document.getElementById("unit-price").value.trim();
+      const shippingCost = document.getElementById("shipping-cost").value.trim();
+      const totalPayable = document.getElementById("total-payable").value.trim();
+      const amountInWords = document.getElementById("amount-in-words").value.trim();
+
+      // Status Updates
+      const status = document.getElementById("status").value.trim();
+      const location = document.getElementById("location").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      // Validate inputs
+      if (!shipmentId || !senderName || !receiverName) {
+        alert("Please fill in all required fields!");
+        return;
+      }
+
+      // Create shipment data object
+      const shipmentData = {
+        sender: { name: senderName, address: senderAddress, email: senderEmail },
+        receiver: { name: receiverName, address: receiverAddress, email: receiverEmail },
+        shipmentId: shipmentId,
+        shipmentFacts: {
+          proformaInvoiceNo: proformaInvoice,
+          invoiceDate: invoiceDate,
+          dueDate: dueDate,
+          currency: currency,
+          paymentMethod: paymentMethod,
+          paymentMode: paymentMode,
+          attention: attention,
+          eta: eta,
+          freightMethod: freightMethod,
+          deliveryType: deliveryType,
+          description: description,
+          units: units,
+          unitPrice: unitPrice,
+          shippingCost: shippingCost,
+          totalPayable: totalPayable,
+          amountInWords: amountInWords
+        },
+        statusUpdates: [
+          { status: status, location: location, message: message, icon: "fas fa-shipping-fast" }
+        ]
+      };
+
+      // Save data to Firebase under the path 'shipments/{shipmentId}'
+      firebase.database().ref('shipments/' + shipmentId).set(shipmentData, function(error) {
+        if (error) {
+          alert("Error saving data: " + error);
+        } else {
+          alert("Shipment data saved successfully!");
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
