@@ -8,6 +8,31 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
   <link rel="icon" type="image/x-icon" href="logo.png">
   <style>
+ .logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .logo-container img {
+    width: 100%;       /* Ensure logo takes up full width of the container */
+    max-width: 300px;  /* Maximum width for the logo (adjust as necessary) */
+    height: auto;      /* Keep the aspect ratio intact */
+    margin: 0 auto;    /* Center the logo horizontally */
+  }
+
+  /* Responsive Styles for Smaller Screens */
+  @media (max-width: 768px) {
+    .logo-container img {
+      max-width: 200px; /* Scale down logo for tablets */
+    }
+  }
+
+  /* Mobile Devices (Small Screens) */
+  @media (max-width: 480px) {
+    .logo-container img {
+      max-width: 150px; /* Further reduce logo size for mobile */
+    }
+  }
     body {
       font-family: 'Arial', sans-serif;
       background-color: #f9fafb;
@@ -298,3 +323,4 @@ const firebaseConfig = {
 
 </body>
 </html>
+
